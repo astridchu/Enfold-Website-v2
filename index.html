@@ -1,4 +1,65 @@
 <meta charset="utf-8">
+<script>
+/* ---- A password before the site: a soft gate, not real protection ----
+   The page is hidden until the right word is given; this browser then
+   remembers it. Only a check value of the word is kept here, not the word.
+   For real protection, set a password on the web host itself. */
+(function(){
+  var KEY = "enfold-gate", CHECK = 1923211341;
+  function check(s){ var h = 5381; for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h; }
+  var ok = false; try { ok = localStorage.getItem(KEY) === String(CHECK); } catch(e){}
+  if (ok) return;
+  var root = document.documentElement;
+  root.classList.add("gated");
+  var css = document.createElement("style");
+  css.textContent =
+    "html.gated,html.gated body{overflow:hidden!important}" +
+    "html.gated body{visibility:hidden}" +
+    ".gate{position:fixed;inset:0;z-index:2147483647;visibility:visible;display:grid;place-items:center;background:#040706;color:#F6F6F3;" +
+      "font-family:Satoshi,Manrope,ui-sans-serif,system-ui,-apple-system,sans-serif}" +
+    ".gate form{display:flex;flex-direction:column;align-items:center;gap:22px;width:min(320px,82vw);text-align:center}" +
+    ".gate-mark{width:44px;height:auto;opacity:.92}" +
+    ".gate-eyebrow{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;opacity:.62}" +
+    ".gate input{width:100%;background:none;border:0;border-bottom:1px solid rgba(246,246,243,.35);color:#F6F6F3;" +
+      "font:inherit;font-size:1rem;letter-spacing:.08em;text-align:center;padding:10px 4px;outline:none;transition:border-color .4s ease}" +
+    ".gate input:focus{border-color:#F6F6F3}" +
+    ".gate button{background:none;border:0;border-bottom:1px solid #9B5664;color:#F6F6F3;cursor:pointer;" +
+      "font:inherit;font-size:.72rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;padding:0 0 8px}" +
+    ".gate-note{min-height:1.2em;font-size:.78rem;opacity:.7}" +
+    ".gate.shake form{animation:gateShake .5s ease}" +
+    "@keyframes gateShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}";
+  document.head ? document.head.appendChild(css) : root.appendChild(css);
+  document.addEventListener("DOMContentLoaded", function(){
+    var gate = document.createElement("div");
+    gate.className = "gate";
+    gate.setAttribute("role", "dialog");
+    gate.setAttribute("aria-modal", "true");
+    gate.setAttribute("aria-label", "Password");
+    var mark = document.querySelector(".nav-mark svg");
+    gate.innerHTML = '<form autocomplete="off">' +
+      (mark ? '<span class="gate-mark-wrap">' + mark.outerHTML.replace("<svg", '<svg class="gate-mark"') + '</span>' : '') +
+      '<div class="gate-eyebrow">Enter the password to continue</div>' +
+      '<input type="password" aria-label="Password" placeholder="Password">' +
+      '<button type="submit">Enter</button>' +
+      '<div class="gate-note" aria-live="polite"></div></form>';
+    document.body.appendChild(gate);
+    var form = gate.querySelector("form"), input = gate.querySelector("input"), note = gate.querySelector(".gate-note");
+    setTimeout(function(){ input.focus(); }, 60);
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      if (check(input.value.trim().toLowerCase()) === CHECK){
+        try { localStorage.setItem(KEY, String(CHECK)); } catch(err){}
+        /* in again from the top, so the page opens as it should */
+        location.reload();
+      } else {
+        note.textContent = "That is not the password.";
+        gate.classList.remove("shake"); void gate.offsetWidth; gate.classList.add("shake");
+        input.select();
+      }
+    });
+  });
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Enfold</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNjAgMzYwIj48c3ZnIHg9IjE2IiB5PSIyMiIgd2lkdGg9IjMyOCIgaGVpZ2h0PSIzMTYiIHZpZXdCb3g9IjE1MCA4NSAzMDQgMjk0Ij48ZyBmaWxsPSIjMDAwMDAwIj48cGF0aCBkPSJNIDMwMS45Njg3NSAxMjEuOTYwOTM4IEMgMjgxLjE5OTIxOSAxMjEuOTYwOTM4IDI2OS45MDYyNSAxMzMuMTY3OTY5IDI2My4yNzczNDQgMTM2Ljc2NTYyNSBDIDI1MS4wMTE3MTkgMTQzLjQxNzk2OSAyMzkuNDAyMzQ0IDE0Ni44NjcxODggMjM5LjQwMjM0NCAxNDYuODY3MTg4IEwgMzY0LjUzMTI1IDE0Ni44NjcxODggQyAzNjQuNTMxMjUgMTQ2Ljg2NzE4OCAzNTIuOTIxODc1IDE0My40MTc5NjkgMzQwLjY1NjI1IDEzNi43NjU2MjUgQyAzMzQuMDI3MzQ0IDEzMy4xNjc5NjkgMzIyLjczNDM3NSAxMjEuOTYwOTM4IDMwMS45Njg3NSAxMjEuOTYwOTM4IFoiPjwvcGF0aD48cGF0aCBkPSJNIDMwMS45Njg3NSA5Ni41MTk1MzEgQyAyODcuODE2NDA2IDk2LjUxOTUzMSAyODAuMTI1IDEwNC4xNTYyNSAyNzUuNjAxNTYyIDEwNi42MTMyODEgQyAyNjcuMjQ2MDk0IDExMS4xNDQ1MzEgMjU5LjMzNTkzOCAxMTMuNDkyMTg4IDI1OS4zMzU5MzggMTEzLjQ5MjE4OCBMIDM0NC41OTc2NTYgMTEzLjQ5MjE4OCBDIDM0NC41OTc2NTYgMTEzLjQ5MjE4OCAzMzYuNjg3NSAxMTEuMTM2NzE5IDMyOC4zMzIwMzEgMTA2LjYxMzI4MSBDIDMyMy44MTY0MDYgMTA0LjE1NjI1IDMxNi4xMjg5MDYgOTYuNTE5NTMxIDMwMS45Njg3NSA5Ni41MTk1MzEgWiI+PC9wYXRoPjxwYXRoIGQ9Ik0gMzAxLjk2ODc1IDI4NC40MTc5NjkgQyAzMzEuODc4OTA2IDI4NC40MTc5NjkgMzU2LjEyODkwNiAyNjAuMzI4MTI1IDM1Ni4xMjg5MDYgMjMwLjYxNzE4OCBDIDM1Ni4xMjg5MDYgMjAwLjkwMjM0NCAzMzEuODc4OTA2IDE3Ni44MTY0MDYgMzAxLjk2ODc1IDE3Ni44MTY0MDYgQyAyNzIuMDU0Njg4IDE3Ni44MTY0MDYgMjQ3LjgwODU5NCAyMDAuOTAyMzQ0IDI0Ny44MDg1OTQgMjMwLjYxNzE4OCBDIDI0Ny44MDg1OTQgMjYwLjMyODEyNSAyNzIuMDU0Njg4IDI4NC40MTc5NjkgMzAxLjk2ODc1IDI4NC40MTc5NjkgWiI+PC9wYXRoPjxwYXRoIGQ9Ik0gMzAxLjk2NDg0NCAzMzkuMjY5NTMxIEMgMjgxLjE5NTMxMiAzMzkuMjY5NTMxIDI2OS45MDYyNSAzMjguMDYyNSAyNjMuMjc3MzQ0IDMyNC40NjQ4NDQgQyAyNTEuMDExNzE5IDMxNy44MTI1IDIzOS40MDIzNDQgMzE0LjM2MzI4MSAyMzkuNDAyMzQ0IDMxNC4zNjMyODEgTCAzNjQuNTMxMjUgMzE0LjM2MzI4MSBDIDM2NC41MzEyNSAzMTQuMzYzMjgxIDM1Mi45MjE4NzUgMzE3LjgxMjUgMzQwLjY1NjI1IDMyNC40NjQ4NDQgQyAzMzQuMDI3MzQ0IDMyOC4wNjI1IDMyMi43MzQzNzUgMzM5LjI2OTUzMSAzMDEuOTY0ODQ0IDMzOS4yNjk1MzEgWiI+PC9wYXRoPjxwYXRoIGQ9Ik0gMzAxLjk2NDg0NCAzNjQuNzEwOTM4IEMgMjg3LjgxNjQwNiAzNjQuNzEwOTM4IDI4MC4xMjUgMzU3LjA3NDIxOSAyNzUuNjAxNTYyIDM1NC42MTcxODggQyAyNjcuMjQ2MDk0IDM1MC4wODU5MzggMjU5LjMzNTkzOCAzNDcuNzM4MjgxIDI1OS4zMzU5MzggMzQ3LjczODI4MSBMIDM0NC41OTc2NTYgMzQ3LjczODI4MSBDIDM0NC41OTc2NTYgMzQ3LjczODI4MSAzMzYuNjg3NSAzNTAuMDkzNzUgMzI4LjMzMjAzMSAzNTQuNjE3MTg4IEMgMzIzLjgxNjQwNiAzNTcuMDc0MjE5IDMxNi4xMjg5MDYgMzY0LjcxMDkzOCAzMDEuOTY0ODQ0IDM2NC43MTA5MzggWiI+PC9wYXRoPjxwYXRoIGQ9Ik0gNDExLjM0NzY1NiAyMzAuNjE3MTg4IEMgNDExLjM0NzY1NiAyMDkuOTg0Mzc1IDQwMC4wNjY0MDYgMTk4Ljc2NTYyNSAzOTYuNDQ1MzEyIDE5Mi4xODM1OTQgQyAzODkuNzQ2MDk0IDE4MCAzODYuMjczNDM4IDE2OC40NjQ4NDQgMzg2LjI3MzQzOCAxNjguNDY0ODQ0IEwgMzg2LjI3MzQzOCAyOTIuNzY1NjI1IEMgMzg2LjI3MzQzOCAyOTIuNzY1NjI1IDM4OS43NDYwOTQgMjgxLjIzNDM3NSAzOTYuNDQ1MzEyIDI2OS4wNTA3ODEgQyA0MDAuMDY2NDA2IDI2Mi40NjQ4NDQgNDExLjM0NzY1NiAyNTEuMjQ2MDk0IDQxMS4zNDc2NTYgMjMwLjYxNzE4OCBaIj48L3BhdGg+PHBhdGggZD0iTSA0MzYuOTYwOTM4IDIzMC42MTcxODggQyA0MzYuOTYwOTM4IDIxNi41NTg1OTQgNDI5LjI2OTUzMSAyMDguOTIxODc1IDQyNi44MDA3ODEgMjA0LjQyNTc4MSBDIDQyMi4yMzQzNzUgMTk2LjEyNSA0MTkuODc1IDE4OC4yNjk1MzEgNDE5Ljg3NSAxODguMjY5NTMxIEwgNDE5Ljg3NSAyNzIuOTYwOTM4IEMgNDE5Ljg3NSAyNzIuOTYwOTM4IDQyMi4yNDYwOTQgMjY1LjEwNTQ2OSA0MjYuODAwNzgxIDI1Ni44MDg1OTQgQyA0MjkuMjY5NTMxIDI1Mi4zMjAzMTIgNDM2Ljk2MDkzOCAyNDQuNjgzNTk0IDQzNi45NjA5MzggMjMwLjYxNzE4OCBaIj48L3BhdGg+PHBhdGggZD0iTSAxOTIuNTg1OTM4IDIzMC42MTcxODggQyAxOTIuNTg1OTM4IDIwOS45ODQzNzUgMjAzLjg2NzE4OCAxOTguNzY1NjI1IDIwNy40ODgyODEgMTkyLjE4MzU5NCBDIDIxNC4xODc1IDE4MCAyMTcuNjYwMTU2IDE2OC40NjQ4NDQgMjE3LjY2MDE1NiAxNjguNDY0ODQ0IEwgMjE3LjY2MDE1NiAyOTIuNzY1NjI1IEMgMjE3LjY2MDE1NiAyOTIuNzY1NjI1IDIxNC4xODc1IDI4MS4yMzQzNzUgMjA3LjQ4ODI4MSAyNjkuMDUwNzgxIEMgMjAzLjg2NzE4OCAyNjIuNDY0ODQ0IDE5Mi41ODU5MzggMjUxLjI0NjA5NCAxOTIuNTg1OTM4IDIzMC42MTcxODggWiI+PC9wYXRoPjxwYXRoIGQ9Ik0gMTY2Ljk3MjY1NiAyMzAuNjE3MTg4IEMgMTY2Ljk3MjY1NiAyMTYuNTU4NTk0IDE3NC42NjQwNjIgMjA4LjkyMTg3NSAxNzcuMTMyODEyIDIwNC40MjU3ODEgQyAxODEuNjk5MjE5IDE5Ni4xMjUgMTg0LjA1ODU5NCAxODguMjY5NTMxIDE4NC4wNTg1OTQgMTg4LjI2OTUzMSBMIDE4NC4wNTg1OTQgMjcyLjk2MDkzOCBDIDE4NC4wNTg1OTQgMjcyLjk2MDkzOCAxODEuNjg3NSAyNjUuMTA1NDY5IDE3Ny4xMzI4MTIgMjU2LjgwODU5NCBDIDE3NC42NjQwNjIgMjUyLjMyMDMxMiAxNjYuOTcyNjU2IDI0NC42ODM1OTQgMTY2Ljk3MjY1NiAyMzAuNjE3MTg4IFoiPjwvcGF0aD48L2c+PC9zdmc+PC9zdmc+">
@@ -2175,7 +2236,7 @@ if (location.hash.length > 1) {
   <!-- ========== 10 · THE VESSEL IS JUST THE BEGINNING ========== -->
   <section id="begin">
     <div class="water-host" id="beginWater">
-      <img src="media/begin-rocks.jpg?v=6ae9d897" alt="Water running between rocks in low sun." loading="lazy" style="object-position:50% 100%">
+      <img src="media/begin-rocks.jpg?v=6ae70e54" alt="Water running between rocks in low sun." loading="lazy" style="object-position:50% 100%">
     </div>
 
     <div class="begin-grid">
